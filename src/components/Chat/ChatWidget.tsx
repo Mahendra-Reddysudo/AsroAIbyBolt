@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
 import Button from '../UI/Button';
 import LoadingSpinner from '../UI/LoadingSpinner';
+import { apiService } from '../../services/api';
 
 interface ChatMessage {
   id: string;
@@ -16,7 +17,7 @@ const ChatWidget: React.FC = () => {
     {
       id: '1',
       sender: 'ai',
-      message: 'Hi! I\'m your AI career assistant. How can I help you today?',
+      message: 'Hi! I\'m your AI career assistant. I can help you with career advice, skill development, resume tips, and industry insights. What would you like to know?',
       timestamp: new Date()
     }
   ]);
@@ -33,7 +34,7 @@ const ChatWidget: React.FC = () => {
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return;
+    if (!inputMessage.trim() || isLoading) return;
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -46,17 +47,29 @@ const ChatWidget: React.FC = () => {
     setInputMessage('');
     setIsLoading(true);
 
-    // Simulate AI response (replace with actual API call)
-    setTimeout(() => {
+    try {
+      const response = await apiService.sendChatMessage(inputMessage);
+      
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         sender: 'ai',
-        message: 'Thank you for your question! This feature is currently under development. In the meantime, you can explore our career recommendations and skill gap analysis tools.',
+        message: response,
         timestamp: new Date()
       };
+      
       setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        sender: 'ai',
+        message: 'I apologize, but I\'m having trouble responding right now. Please try asking your question again, or feel free to explore our career recommendations and skill analysis tools.',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -64,6 +77,17 @@ const ChatWidget: React.FC = () => {
       e.preventDefault();
       handleSendMessage();
     }
+  };
+
+  const quickQuestions = [
+    "How do I improve my resume?",
+    "What skills should I learn for data science?",
+    "How to transition to tech career?",
+    "What are the trending jobs in 2024?"
+  ];
+
+  const handleQuickQuestion = (question: string) => {
+    setInputMessage(question);
   };
 
   return (
@@ -111,7 +135,7 @@ const ChatWidget: React.FC = () => {
                   <div className="flex items-start space-x-2">
                     {message.sender === 'ai' && <Bot className="h-4 w-4 mt-0.5 flex-shrink-0" />}
                     {message.sender === 'user' && <User className="h-4 w-4 mt-0.5 flex-shrink-0" />}
-                    <p className="text-sm">{message.message}</p>
+                    <p className="text-sm leading-relaxed">{message.message}</p>
                   </div>
                   <p className="text-xs opacity-70 mt-1">
                     {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -119,6 +143,7 @@ const ChatWidget: React.FC = () => {
                 </div>
               </div>
             ))}
+            
             {isLoading && (
               <div className="flex justify-start">
                 <div className="bg-secondary-100 text-secondary-900 px-3 py-2 rounded-lg">
@@ -126,8 +151,27 @@ const ChatWidget: React.FC = () => {
                 </div>
               </div>
             )}
+            
             <div ref={messagesEndRef} />
           </div>
+
+          {/* Quick Questions */}
+          {messages.length === 1 && (
+            <div className="px-4 pb-2">
+              <p className="text-xs text-secondary-600 mb-2">Quick questions:</p>
+              <div className="space-y-1">
+                {quickQuestions.map((question, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleQuickQuestion(question)}
+                    className="block w-full text-left text-xs text-primary-600 hover:text-primary-700 hover:bg-primary-50 px-2 py-1 rounded transition-colors duration-200"
+                  >
+                    {question}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Input */}
           <div className="p-4 border-t border-secondary-200">

@@ -1,3 +1,5 @@
+import { geminiAI } from './geminiAI';
+
 const API_BASE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
 
 const getAuthHeaders = () => {
@@ -79,19 +81,29 @@ export interface IndustryTrends {
   last_updated: string | null;
 }
 
+// Helper function to get user profile data
+const getUserProfileData = () => {
+  // This would typically come from your user context or API
+  // For now, we'll use mock data that represents a typical user profile
+  return {
+    skills: ['JavaScript', 'React', 'Node.js', 'Python', 'SQL'],
+    experience: ['Frontend Developer at TechCorp (2 years)', 'Junior Developer at StartupXYZ (1 year)'],
+    interests: ['Web Development', 'Machine Learning', 'User Experience'],
+    education: ['Bachelor of Computer Science', 'Online Courses in Web Development']
+  };
+};
+
 export const apiService = {
   // Career Recommendations
   async getCareerRecommendations(): Promise<{ recommendations: CareerRecommendation[] }> {
-    const response = await fetch(`${API_BASE_URL}/career-recommendations`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-    });
-
-    if (!response.ok) {
+    try {
+      const userProfile = getUserProfileData();
+      const recommendations = await geminiAI.generateCareerRecommendations(userProfile);
+      return { recommendations };
+    } catch (error) {
+      console.error('Error generating career recommendations:', error);
       throw new Error('Failed to fetch career recommendations');
     }
-
-    return response.json();
   },
 
   // Skill Gap Analysis
@@ -107,35 +119,35 @@ export const apiService = {
       estimated_learning_time: number;
     };
   }> {
-    const response = await fetch(`${API_BASE_URL}/skill-gap-analysis`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ target_career_id: targetCareerId }),
-    });
-
-    if (!response.ok) {
+    try {
+      const userProfile = getUserProfileData();
+      // Map career ID to career name (in a real app, this would come from a database)
+      const careerNames: { [key: string]: string } = {
+        'software-engineer': 'Software Engineer',
+        'data-scientist': 'Data Scientist',
+        'product-manager': 'Product Manager',
+        'ux-designer': 'UX Designer',
+        'devops-engineer': 'DevOps Engineer'
+      };
+      
+      const targetCareerName = careerNames[targetCareerId] || 'Software Engineer';
+      const analysis = await geminiAI.analyzeSkillGaps(userProfile.skills, targetCareerName);
+      return analysis;
+    } catch (error) {
+      console.error('Error analyzing skill gaps:', error);
       throw new Error('Failed to analyze skill gaps');
     }
-
-    return response.json();
   },
 
   // Resume Optimization
   async optimizeResume(resumeText: string, targetJobTitle: string): Promise<ResumeOptimization> {
-    const response = await fetch(`${API_BASE_URL}/resume-optimization`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({
-        resume_text: resumeText,
-        target_job_title: targetJobTitle,
-      }),
-    });
-
-    if (!response.ok) {
+    try {
+      const optimization = await geminiAI.optimizeResume(resumeText, targetJobTitle);
+      return optimization;
+    } catch (error) {
+      console.error('Error optimizing resume:', error);
       throw new Error('Failed to optimize resume');
     }
-
-    return response.json();
   },
 
   // Industry Trends
@@ -144,26 +156,27 @@ export const apiService = {
     skill?: string;
     limit?: number;
   }): Promise<IndustryTrends> {
-    const params = new URLSearchParams();
-    if (filters?.industry) params.append('industry', filters.industry);
-    if (filters?.skill) params.append('skill', filters.skill);
-    if (filters?.limit) params.append('limit', filters.limit.toString());
-
-    const response = await fetch(`${API_BASE_URL}/industry-trends?${params}`, {
-      headers: getAuthHeaders(),
-    });
-
-    if (!response.ok) {
+    try {
+      const trends = await geminiAI.generateIndustryTrends();
+      return trends;
+    } catch (error) {
+      console.error('Error fetching industry trends:', error);
       throw new Error('Failed to fetch industry trends');
     }
-
-    return response.json();
   },
 
   // User Feedback
   async submitCareerFeedback(careerId: string, feedbackType: 'like' | 'dismiss' | 'interested' | 'not_relevant'): Promise<void> {
-    // This would be implemented as a direct Supabase call in the component
-    // since it's a simple insert operation
+    // Store feedback locally for now (in a real app, this would go to a database)
+    const feedback = {
+      careerId,
+      feedbackType,
+      timestamp: new Date().toISOString()
+    };
+    
+    const existingFeedback = JSON.parse(localStorage.getItem('career_feedback') || '[]');
+    existingFeedback.push(feedback);
+    localStorage.setItem('career_feedback', JSON.stringify(existingFeedback));
   },
 
   // User Skills Management
@@ -173,6 +186,18 @@ export const apiService = {
     years_experience: number;
     is_learning?: boolean;
   }>): Promise<void> {
-    // This would be implemented as direct Supabase calls in the component
+    // Store skills locally for now (in a real app, this would go to a database)
+    localStorage.setItem('user_skills', JSON.stringify(skills));
   },
+
+  // Chat functionality
+  async sendChatMessage(message: string, context?: string): Promise<string> {
+    try {
+      const response = await geminiAI.generateChatResponse(message, context);
+      return response;
+    } catch (error) {
+      console.error('Error sending chat message:', error);
+      throw new Error('Failed to get chat response');
+    }
+  }
 };
