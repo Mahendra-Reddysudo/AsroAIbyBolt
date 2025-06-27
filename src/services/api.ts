@@ -281,7 +281,7 @@ export const apiService = {
   }): Promise<IndustryTrends> {
     try {
       console.log('Fetching industry trends with filters:', filters);
-      const trends = await geminiAI.generateIndustryTrends();
+      const trends = await geminiAI.generateIndustryTrends(filters);
       return trends;
     } catch (error) {
       console.error('Error fetching industry trends:', error);

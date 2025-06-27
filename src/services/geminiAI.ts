@@ -279,7 +279,11 @@ Format as JSON:
     }
   }
 
-  async generateIndustryTrends(): Promise<any> {
+  async generateIndustryTrends(filters?: {
+    industry?: string;
+    skill?: string;
+    limit?: number;
+  }): Promise<any> {
     // Check if API key is configured, if not, return fallback immediately
     if (!this.isApiKeyConfigured()) {
       console.warn('Gemini API key not configured, using fallback industry trends');
@@ -287,7 +291,7 @@ Format as JSON:
     }
 
     try {
-      const prompt = `
+      let prompt = `
 Generate current industry trends and insights for career development.
 
 Provide insights about:
@@ -296,6 +300,21 @@ Provide insights about:
 3. Industry shifts
 4. Market trends
 5. Trending skills with mention counts
+`;
+
+      // Add filter-specific instructions if filters are provided
+      if (filters?.industry || filters?.skill) {
+        prompt += `\nFocus specifically on:`;
+        if (filters.industry) {
+          prompt += `\n- Industry: ${filters.industry}`;
+        }
+        if (filters.skill) {
+          prompt += `\n- Skill: ${filters.skill}`;
+        }
+        prompt += `\nEnsure the insights are relevant to these specific areas.`;
+      }
+
+      prompt += `
 
 Format as JSON:
 {
@@ -570,7 +589,7 @@ Provide a helpful, encouraging, and actionable response. Keep it conversational 
         }
       ],
       missing_keywords: ["leadership", "teamwork", "problem-solving", "communication"],
-      relevant_skills_found: userSkills.slice(0, 3),
+      relevant_skills_found: ["JavaScript", "React", "Python"].slice(0, 3),
       analysis_summary: {
         word_count: wordCount,
         has_quantifiable_achievements: hasNumbers,
