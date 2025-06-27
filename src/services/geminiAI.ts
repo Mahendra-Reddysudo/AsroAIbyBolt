@@ -24,9 +24,13 @@ class GeminiAI {
     }
   }
 
+  private isApiKeyConfigured(): boolean {
+    return !(!this.apiKey || this.apiKey === 'your_gemini_api_key_here' || this.apiKey === 'AIzaSyB5VHdV_Ya6s9bl7mMzp-GMd-oP9YRkuGk');
+  }
+
   private async makeRequest(prompt: string): Promise<string> {
-    // If API key is not properly configured, return fallback response
-    if (!this.apiKey || this.apiKey === 'your_gemini_api_key_here' || this.apiKey === 'AIzaSyB5VHdV_Ya6s9bl7mMzp-GMd-oP9YRkuGk') {
+    // If API key is not properly configured, throw specific error
+    if (!this.isApiKeyConfigured()) {
       console.warn('Using fallback response due to missing/invalid API key');
       throw new Error('API_KEY_NOT_CONFIGURED');
     }
@@ -86,6 +90,12 @@ class GeminiAI {
     interests: string[];
     education: string[];
   }): Promise<any[]> {
+    // If API key is not configured, return fallback immediately
+    if (!this.isApiKeyConfigured()) {
+      console.warn('Gemini API key not configured, using fallback career recommendations');
+      return this.getFallbackCareerRecommendations(userProfile);
+    }
+
     try {
       const prompt = `
 Based on the following user profile, recommend 5-8 career paths with detailed analysis:
@@ -137,6 +147,12 @@ Format the response as a JSON array with this structure:
   }
 
   async analyzeSkillGaps(userSkills: string[], targetCareer: string): Promise<any> {
+    // If API key is not configured, return fallback immediately
+    if (!this.isApiKeyConfigured()) {
+      console.warn('Gemini API key not configured, using fallback skill gap analysis');
+      return this.getFallbackSkillGapAnalysis(userSkills, targetCareer);
+    }
+
     try {
       const prompt = `
 Analyze skill gaps for a user wanting to become a ${targetCareer}.
@@ -207,6 +223,12 @@ Format as JSON:
   }
 
   async optimizeResume(resumeText: string, targetJobTitle: string): Promise<any> {
+    // If API key is not configured, return fallback immediately
+    if (!this.isApiKeyConfigured()) {
+      console.warn('Gemini API key not configured, using fallback resume optimization');
+      return this.getFallbackResumeOptimization(resumeText, targetJobTitle);
+    }
+
     try {
       const prompt = `
 Analyze and optimize this resume for the position: ${targetJobTitle}
@@ -259,7 +281,7 @@ Format as JSON:
 
   async generateIndustryTrends(): Promise<any> {
     // Check if API key is configured, if not, return fallback immediately
-    if (!this.apiKey || this.apiKey === 'your_gemini_api_key_here' || this.apiKey === 'AIzaSyB5VHdV_Ya6s9bl7mMzp-GMd-oP9YRkuGk') {
+    if (!this.isApiKeyConfigured()) {
       console.warn('Gemini API key not configured, using fallback industry trends');
       return this.getFallbackIndustryTrends();
     }
@@ -314,6 +336,12 @@ Format as JSON:
   }
 
   async generateChatResponse(message: string, context?: string): Promise<string> {
+    // If API key is not configured, return fallback immediately
+    if (!this.isApiKeyConfigured()) {
+      console.warn('Gemini API key not configured, using fallback chat response');
+      return "I'm currently running in demo mode with limited AI capabilities. For full AI-powered responses, please configure your Gemini API key. However, I can still help you with career guidance using my built-in knowledge base!";
+    }
+
     try {
       const prompt = `
 You are ASPIRO AI, a career guidance assistant. Respond to the user's question about career development, skills, job search, or professional growth.
