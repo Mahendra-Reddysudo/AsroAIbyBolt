@@ -258,6 +258,12 @@ Format as JSON:
   }
 
   async generateIndustryTrends(): Promise<any> {
+    // Check if API key is configured, if not, return fallback immediately
+    if (!this.apiKey || this.apiKey === 'your_gemini_api_key_here' || this.apiKey === 'AIzaSyB5VHdV_Ya6s9bl7mMzp-GMd-oP9YRkuGk') {
+      console.warn('Gemini API key not configured, using fallback industry trends');
+      return this.getFallbackIndustryTrends();
+    }
+
     try {
       const prompt = `
 Generate current industry trends and insights for career development.
