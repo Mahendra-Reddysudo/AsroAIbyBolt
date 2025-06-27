@@ -14,6 +14,7 @@ A comprehensive AI-powered career guidance platform built with React, TypeScript
 
 - **Frontend**: React 18, TypeScript, Tailwind CSS
 - **Backend**: Supabase (PostgreSQL + Edge Functions)
+- **AI**: Google Gemini API
 - **Deployment**: Docker, Kubernetes, Nginx
 - **Monitoring**: Prometheus, Grafana
 
@@ -33,7 +34,7 @@ npm install
 3. Set up environment variables:
 ```bash
 cp .env.example .env
-# Edit .env with your Supabase credentials
+# Edit .env with your credentials (see Configuration section below)
 ```
 
 4. Start the development server:
@@ -66,9 +67,20 @@ kubectl apply -f k8s/
 
 ### Environment Variables
 
+**Required:**
 - `VITE_SUPABASE_URL`: Your Supabase project URL
 - `VITE_SUPABASE_ANON_KEY`: Your Supabase anonymous key
+- `VITE_GEMINI_API_KEY`: Your Google Gemini API key (get it from [Google AI Studio](https://makersuite.google.com/app/apikey))
+
+**Optional:**
+- `VITE_SENTRY_DSN`: Sentry DSN for error tracking
+- `VITE_ANALYTICS_ID`: Analytics tracking ID
 - `NODE_ENV`: Environment (development/production)
+
+### Getting API Keys
+
+1. **Supabase**: Create a project at [supabase.com](https://supabase.com) and get your URL and anon key from the project settings
+2. **Gemini API**: Visit [Google AI Studio](https://makersuite.google.com/app/apikey) to create and get your API key
 
 ### Database Setup
 
